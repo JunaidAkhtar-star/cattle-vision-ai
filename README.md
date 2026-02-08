@@ -1,6 +1,6 @@
 # 🐄 Cattle Vision AI
 
-! [image alt] (https://github.com/JunaidAkhtar-star/cattle-vision-ai/blob/e5ec8c9f5b975789587751376366e483aaab2e80/Screenshot%20(262).png)
+![image alt] (https://github.com/JunaidAkhtar-star/cattle-vision-ai/blob/e5ec8c9f5b975789587751376366e483aaab2e80/Screenshot%20(262).png)
 
 Cattle Vision AI is a Flask‑based web application that performs **cattle/buffalo breed identification** and **visual health screening** from images.  
 It provides a modern UI, prediction history, Google OAuth login, and a feedback loop to improve the model over time.
@@ -234,3 +234,4 @@ You can add your preferred license here (e.g., MIT) once you decide.
 🙌 Credits
 
 Built by Digital Dominators team as Cattle Vision AI Project to support farmers, veterinarians, and livestock managers.
+
