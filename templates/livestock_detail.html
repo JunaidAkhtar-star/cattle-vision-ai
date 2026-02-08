@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cattle Vision · Livestock Details</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-amber-50 via-green-50 to-emerald-50 flex flex-col">
+
+  <header class="bg-gradient-to-r from-emerald-700 to-green-700 shadow-md border-b-4 border-amber-500">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-amber-400 flex items-center justify-center shadow-lg">
+          <span class="text-emerald-700 text-lg font-bold">🐄</span>
+        </div>
+        <div>
+          <h1 class="text-base md:text-lg font-bold text-white">
+            Livestock Details
+          </h1>
+          <p class="text-xs text-emerald-100">
+            Full record and past predictions
+          </p>
+        </div>
+      </div>
+
+      <div class="hidden md:flex items-center gap-2 text-xs">
+        <a href="{{ url_for('history') }}"
+           class="px-3 py-1 rounded-lg bg-white/90 text-emerald-800 font-semibold hover:bg-white shadow">
+          ← Back to History
+        </a>
+        <a href="{{ url_for('upload') }}"
+           class="px-3 py-1 rounded-lg bg-amber-400 text-emerald-800 font-semibold hover:bg-amber-300 shadow">
+          Upload
+        </a>
+        <a href="{{ url_for('logout') }}"
+           class="px-3 py-1 rounded-lg bg-emerald-900 text-emerald-100 font-semibold hover:bg-black/60 shadow">
+          Logout
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1">
+    <div class="max-w-4xl mx-auto px-4 py-8 space-y-6">
+
+      <!-- Basic animal info -->
+      <section class="bg-white rounded-2xl shadow-lg border-l-4 border-l-green-600 border border-slate-200 p-5 text-sm">
+        <h2 class="text-lg font-bold text-emerald-800 mb-3">Animal information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <p class="text-xs text-slate-500">Animal ID</p>
+            <p class="font-semibold text-slate-800">{{ animal.animal_id }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500">Species</p>
+            <p class="font-semibold text-slate-800">{{ animal.species or '—' }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500">Breed</p>
+            <p class="font-semibold text-slate-800">{{ animal.breed or '—' }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500">Age (years)</p>
+            <p class="font-semibold text-slate-800">{{ animal.age_years or '—' }}</p>
+          </div>
+          <div class="md:col-span-2">
+            <p class="text-xs text-slate-500">Notes</p>
+            <p class="font-semibold text-slate-800">{{ animal.notes or '—' }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500">Created at</p>
+            <p class="font-semibold text-slate-800">
+              {{ animal.created_at.strftime('%Y-%m-%d %H:%M') if animal.created_at else '—' }}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Predictions list -->
+      <section class="bg-white rounded-2xl shadow-lg border-l-4 border-l-amber-500 border border-slate-200 p-5 text-sm">
+        <h2 class="text-lg font-bold text-emerald-800 mb-3">Predictions for this animal</h2>
+
+        {% if predictions %}
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-xs md:text-sm text-left border-collapse">
+              <thead>
+                <tr class="bg-gradient-to-r from-emerald-100 to-green-100 border-b-2 border-emerald-400">
+                  <th class="px-3 py-2 font-bold text-emerald-800">Date</th>
+                  <th class="px-3 py-2 font-bold text-emerald-800">Image</th>
+                  <th class="px-3 py-2 font-bold text-emerald-800">Predicted Breed</th>
+                  <th class="px-3 py-2 font-bold text-emerald-800">Breed Conf.</th>
+                  <th class="px-3 py-2 font-bold text-emerald-800">Disease</th>
+                  <th class="px-3 py-2 font-bold text-emerald-800">Disease Conf.</th>
+                  <th class="px-3 py-2 font-bold text-emerald-800">Health Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in predictions %}
+                <tr class="border-b border-slate-100">
+                  <td class="px-3 py-2 text-slate-600">
+                    {{ p.analysis_date.strftime('%Y-%m-%d %H:%M') if p.analysis_date else '—' }}
+                  </td>
+                  <td class="px-3 py-2">
+                    {% if p.image_path %}
+                      {# Extract only the file name from the stored path #}
+                      {% set filename = p.image_path.split('/')[-1].split('\\')[-1] %}
+                      <img src="{{ url_for('static', filename='uploads/' ~ filename) }}"
+                           alt="Prediction image"
+                           class="h-16 w-16 object-cover rounded-lg border border-slate-200" />
+                    {% else %}
+                      —
+                    {% endif %}
+                  </td>
+                  <td class="px-3 py-2 text-slate-800">{{ p.predicted_breed or '—' }}</td>
+                  <td class="px-3 py-2 text-slate-800">
+                    {% if p.breed_confidence is not none %}
+                      {{ "%.1f" | format(p.breed_confidence * 100) }}%
+                    {% else %}
+                      —
+                    {% endif %}
+                  </td>
+                  <td class="px-3 py-2 text-slate-800">{{ p.predicted_disease or 'No detection' }}</td>
+                  <td class="px-3 py-2 text-slate-800">
+                    {% if p.disease_confidence is not none %}
+                      {{ "%.1f" | format(p.disease_confidence * 100) }}%
+                    {% else %}
+                      —
+                    {% endif %}
+                  </td>
+                  <td class="px-3 py-2 text-slate-800">{{ p.health_status or '—' }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-xs text-slate-700">
+            No predictions recorded for this animal yet.
+          </p>
+        {% endif %}
+      </section>
+
+      <div class="md:hidden">
+        <a href="{{ url_for('history') }}"
+           class="inline-block mt-2 px-3 py-2 rounded-lg bg-white/90 text-emerald-800 font-semibold hover:bg-white shadow text-xs">
+          ← Back to History
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="border-t-4 border-emerald-700 bg-gradient-to-r from-emerald-800 to-green-800 py-4 text-center text-xs text-emerald-100 shadow-lg">
+    © 2025 <span class="font-bold">Digital Dominators</span> ·
+    <span class="text-amber-300 font-semibold">Cattle Vision AI Project</span>
+  </footer>
+</body>
+</html>

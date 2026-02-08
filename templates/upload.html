@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en" x-data="uploader()" x-init="init()">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cattle Breed &amp; Disease Detection AI</title>
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://unpkg.com/alpinejs" defer></script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-amber-50 via-green-50 to-emerald-50 flex flex-col">
+
+  <!-- Top nav -->
+  <header class="bg-gradient-to-r from-emerald-700 to-green-700 shadow-md border-b-4 border-amber-500">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
+      <!-- Left: brand -->
+      <div class="flex items-center gap-3">
+        <div class="h-11 w-11 rounded-xl bg-amber-400 flex items-center justify-center shadow-lg">
+          <span class="text-emerald-700 text-lg font-bold">🐄</span>
+        </div>
+        <div>
+          <h1 class="text-sm md:text-lg font-bold text-white">
+            Cattle Vision AI · Smart Livestock Intelligence
+          </h1>
+          <p class="text-[11px] md:text-xs text-emerald-100">
+            AI-powered breed identification &amp; disease detection for dairy &amp; beef cattle
+          </p>
+        </div>
+      </div>
+
+      <!-- Right: auth area -->
+      {% if user %}
+        <!-- Logged in -->
+        <div class="flex flex-col items-end gap-2 text-[11px] md:text-xs">
+          <div class="flex flex-col items-end">
+            <span class="text-emerald-100 font-semibold">
+              👤 {{ user.name }} · {{ user.role }}
+            </span>
+            <span class="text-[10px] md:text-[11px] text-emerald-100/80">
+              {{ user.email }}
+            </span>
+          </div>
+          <div class="flex flex-wrap gap-2 justify-end">
+            <a href="{{ url_for('history') }}"
+               class="px-3 py-1 rounded-lg bg-amber-400 text-emerald-800 font-semibold hover:bg-amber-300 shadow">
+              History
+            </a>
+            <a href="{{ url_for('logout') }}"
+               class="px-3 py-1 rounded-lg bg-emerald-900 text-emerald-100 font-semibold hover:bg-black/60 shadow">
+              Logout
+            </a>
+          </div>
+        </div>
+      {% else %}
+        <!-- Logged out -->
+        <div class="flex items-center gap-2 text-xs">
+          <!-- Mobile: simple buttons -->
+          <div class="flex gap-2 md:hidden">
+            <a href="{{ url_for('login') }}"
+               class="px-3 py-1 rounded-lg bg-white/90 text-emerald-800 font-semibold hover:bg-white shadow text-[11px]">
+              Login
+            </a>
+            <a href="{{ url_for('register') }}"
+               class="px-3 py-1 rounded-lg bg-amber-400 text-emerald-800 font-semibold hover:bg-amber-300 shadow text-[11px]">
+              Sign up
+            </a>
+          </div>
+
+          <!-- Desktop -->
+          <div class="hidden md:flex flex-col items-end gap-1">
+            <div class="flex gap-2">
+              <a href="{{ url_for('login') }}"
+                 class="px-4 py-1.5 rounded-lg bg-white/90 text-emerald-800 font-semibold hover:bg-white shadow text-xs">
+                Login
+              </a>
+              <a href="{{ url_for('register') }}"
+                 class="px-4 py-1.5 rounded-lg bg-amber-400 text-emerald-800 font-semibold hover:bg-amber-300 shadow text-xs">
+                Create account
+              </a>
+            </div>
+            <p class="text-[10px] text-emerald-100/80">
+              Save your cattle history by creating a free account.
+            </p>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </header>
+
+  <!-- Main layout -->
+  <main class="flex-1">
+    <div class="max-w-6xl mx-auto px-4 py-8 grid gap-8 lg:grid-cols-[1.2fr_1fr]">
+
+      <!-- Left: upload card -->
+      <section>
+        <div class="bg-white rounded-2xl shadow-lg border-l-4 border-l-emerald-600 border border-slate-200 p-6 md:p-7 space-y-5">
+
+          <header class="flex items-start justify-between gap-4">
+            <div>
+              <h2 class="text-2xl md:text-3xl font-bold text-emerald-800 tracking-tight">
+                📸 Upload Cattle Image
+              </h2>
+              <p class="mt-2 text-sm text-slate-600 leading-relaxed">
+                Upload a clear image of your cattle or buffalo. Our AI model will instantly analyze and predict the
+                <span class="font-semibold text-emerald-700">breed</span>, estimate
+                <span class="font-semibold text-red-600">disease risk</span>, and provide
+                <span class="font-semibold text-amber-700">health recommendations</span>.
+              </p>
+            </div>
+          </header>
+
+          <!-- Flash messages -->
+          {% with messages = get_flashed_messages() %}
+            {% if messages %}
+              <div class="rounded-xl border border-amber-400 bg-amber-50 px-4 py-2 text-xs text-amber-900">
+                {% for msg in messages %}
+                  <div>{{ msg }}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endwith %}
+
+          <!-- Preview -->
+          <template x-if="imageUrl">
+            <div class="rounded-xl overflow-hidden border-4 border-emerald-400 shadow-md">
+              <img :src="imageUrl" alt="Preview" class="w-full h-56 object-cover" />
+            </div>
+          </template>
+
+          <!-- Upload form -->
+          <form method="POST"
+                enctype="multipart/form-data"
+                action="{{ url_for('upload') }}"
+                class="space-y-4"
+                @submit="loading = true">
+
+            <!-- Dropzone -->
+            <label
+              class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-xl cursor-pointer
+                     bg-gradient-to-br from-emerald-50 to-green-50 hover:from-emerald-100 hover:to-green-100 transition
+                     border-emerald-400 hover:border-emerald-600 text-slate-600 text-sm"
+              :class="{ 'bg-gradient-to-br from-amber-100 to-emerald-100 border-emerald-700': dragover }"
+              @dragover.prevent="dragover = true"
+              @dragleave.prevent="dragover = false"
+              @drop.prevent="handleDrop($event)"
+              x-data="{ dragover: false }"
+            >
+              <svg class="w-12 h-12 text-emerald-600 mb-2 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M8 12l4-4m0 0l4 4m-4-4v12" />
+              </svg>
+              <span class="font-bold text-emerald-800">Drop image here or click to browse</span>
+              <span class="text-xs text-emerald-600 mt-1">
+                JPG / PNG · Side or front view recommended · Max 5MB
+              </span>
+              <input id="file"
+                     type="file"
+                     name="file"
+                     class="hidden"
+                     required
+                     accept="image/*"
+                     @change="handleFileSelect"
+                     x-ref="fileInput" />
+            </label>
+
+            <!-- Main action button -->
+            <button
+              type="submit"
+              class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 text-white text-sm font-bold tracking-wide
+                     hover:from-emerald-700 hover:to-green-700 transition shadow-md hover:shadow-lg transform hover:scale-105"
+            >
+              🚀 Run Breed &amp; Disease Prediction
+            </button>
+          </form>
+
+          <!-- Sample images -->
+          <div class="pt-4 border-t-2 border-amber-200">
+            <p class="text-xs font-semibold text-emerald-700 mb-3">
+              📚 Try with sample images:
+            </p>
+            <div class="flex gap-3">
+              <button
+                @click="setSampleImage('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80')"
+                class="group relative overflow-hidden"
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=120&q=80"
+                  alt="Sample Cow"
+                  class="w-16 h-16 rounded-lg object-cover border-2 border-emerald-400 hover:border-emerald-700 cursor-pointer transition shadow-md" />
+                <span class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition"></span>
+                <p class="text-xs mt-1 font-semibold text-emerald-700">Dairy Cow</p>
+              </button>
+              <button
+                @click="setSampleImage('https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=400&q=80')"
+                class="group relative overflow-hidden"
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=120&q=80"
+                  alt="Sample Buffalo"
+                  class="w-16 h-16 rounded-lg object-cover border-2 border-amber-400 hover:border-amber-700 cursor-pointer transition shadow-md" />
+                <span class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition"></span>
+                <p class="text-xs mt-1 font-semibold text-amber-700">Buffalo</p>
+              </button>
+            </div>
+          </div>
+
+          <!-- What you will get -->
+          <div class="mt-4 pt-4 border-t border-slate-200">
+            <h3 class="text-sm font-semibold text-emerald-800 mb-2 flex items-center gap-2">
+              🔍 What you will get from this analysis
+            </h3>
+            <div class="grid gap-3 sm:grid-cols-3 text-[11px] text-slate-700">
+              <div class="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3 flex flex-col gap-1">
+                <span class="text-xs font-semibold text-emerald-800">Breed insights</span>
+                <p>
+                  Predicted cattle or buffalo breed with confidence score and quick trait summary.
+                </p>
+              </div>
+              <div class="rounded-xl border border-red-100 bg-red-50/70 p-3 flex flex-col gap-1">
+                <span class="text-xs font-semibold text-red-700">Disease risk signal</span>
+                <p>
+                  High-level indication of visible disease patterns such as Lumpy Skin Disease.
+                </p>
+              </div>
+              <div class="rounded-xl border border-amber-100 bg-amber-50/80 p-3 flex flex-col gap-1">
+                <span class="text-xs font-semibold text-amber-800">Farmer-friendly tips</span>
+                <p>
+                  Simple guidance on isolation, hygiene and when to contact a veterinarian urgently.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Right: info + recent predictions -->
+      <aside class="space-y-4">
+        <!-- Checklist -->
+        <div class="bg-white rounded-2xl shadow-lg border-l-4 border-l-amber-500 p-5 space-y-3">
+          <h3 class="text-sm font-bold text-emerald-800 mb-3 flex items-center gap-2">
+            ✅ Before You Upload
+          </h3>
+          <ul class="space-y-2 text-xs text-slate-700">
+            <li class="flex gap-2">
+              <span class="mt-0.5 h-5 w-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">✓</span>
+              Use a <span class="font-semibold">single animal</span> with clear side or front view.
+            </li>
+            <li class="flex gap-2">
+              <span class="mt-0.5 h-5 w-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">✓</span>
+              Avoid blur, low light, shadows, or extreme distance.
+            </li>
+            <li class="flex gap-2">
+              <span class="mt-0.5 h-5 w-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">✓</span>
+              Supports 14 Indian &amp; exotic cattle and buffalo breeds.
+            </li>
+            <li class="flex gap-2">
+              <span class="mt-0.5 h-5 w-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">✓</span>
+              Detects common diseases like Lumpy Skin Disease.
+            </li>
+          </ul>
+        </div>
+
+        <!-- Recent predictions -->
+        {% if recent_predictions %}
+        <div class="bg-white rounded-2xl shadow-lg border-l-4 border-l-green-600 p-5 space-y-3">
+          <h3 class="text-sm font-bold text-green-800 mb-1 flex items-center gap-2">
+            🐄 Recent Analyses
+          </h3>
+          <p class="text-[11px] text-slate-600 mb-2">
+            Last 5 screenings saved for your livestock.
+          </p>
+          <div class="space-y-2 max-h-64 overflow-y-auto pr-1">
+            {% for pred in recent_predictions %}
+              <div class="flex justify-between items-center text-xs border-b border-slate-100 pb-1">
+                <div>
+                  <p class="font-semibold text-slate-800">
+                    {{ pred.predicted_breed }} · {{ pred.health_status or 'Unknown' }}
+                  </p>
+                  <p class="text-[11px] text-slate-500">
+                    {{ pred.analysis_date.strftime('%Y-%m-%d %H:%M') }}
+                  </p>
+                </div>
+                <div class="text-right">
+                  <p class="text-[11px] text-emerald-700 font-semibold">
+                    {{ "%.1f"|format((pred.breed_confidence or 0) * 100) }}%
+                  </p>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Project Highlights -->
+        <div class="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl shadow-lg border-2 border-amber-400 p-5 space-y-3">
+          <h3 class="text-sm font-bold text-amber-900 flex items-center gap-2">
+            🏆 Key Features
+          </h3>
+          <div class="space-y-2 text-xs">
+            <button class="w-full bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-lg font-semibold transition">
+              🎯 14 Breed Classes Trained
+            </button>
+            <button class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition">
+              🦠 Lumpy Disease Detection
+            </button>
+            <button class="w-full bg-emerald-700 hover:bg-emerald-800 text-white py-2 rounded-lg font-semibold transition">
+              🧠 Deep Learning (ResNet-18)
+            </button>
+            <button class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-semibold transition">
+              📊 82% Validation Accuracy
+            </button>
+            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition">
+              ⚡ Real-Time Predictions
+            </button>
+            <button class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-semibold transition">
+              📱 Mobile Friendly
+            </button>
+          </div>
+        </div>
+
+        <!-- About prototype -->
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl text-white p-5 space-y-3 shadow-lg">
+          <h3 class="text-sm font-bold text-amber-300">
+            ℹ️ About This Tool
+          </h3>
+          <p class="text-xs text-slate-200 leading-relaxed">
+            Built with <span class="font-semibold text-emerald-300">PyTorch &amp; Flask</span>, trained on
+            <span class="font-semibold">1,852+ cattle images</span>.
+          </p>
+          <p class="text-[11px] text-slate-300 border-t border-slate-600 pt-2">
+            ⚠️ <span class="font-semibold">Not for clinical diagnosis.</span> Always consult a veterinarian.
+          </p>
+        </div>
+
+        <!-- Quick info -->
+        <div class="bg-green-50 rounded-2xl border-2 border-green-400 p-4">
+          <p class="text-xs text-green-900 text-center font-semibold">
+            💡 Supporting Indian dairy farmers, veterinarians, and livestock managers
+          </p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t-4 border-emerald-700 bg-gradient-to-r from-emerald-800 to-green-800 py-4 text-center text-xs text-emerald-100 shadow-lg">
+    © 2025 <span class="font-bold">Digital Dominators</span> · <span class="text-amber-300 font-semibold">Cattle Vision AI Project</span>
+  </footer>
+
+  <script type="module">
+    function uploader() {
+      return {
+        loading: false,
+        dragover: false,
+        imageUrl: null,
+        handleFileSelect(event) {
+          const file = event.target.files[0];
+          if (file) this.imageUrl = URL.createObjectURL(file);
+        },
+        handleDrop(event) {
+          const file = event.dataTransfer.files[0];
+          if (file) {
+            this.imageUrl = URL.createObjectURL(file);
+            this.$refs.fileInput.files = event.dataTransfer.files;
+          }
+          this.dragover = false;
+        },
+        setSampleImage(url) {
+          this.imageUrl = url;
+          setTimeout(() => document.querySelector('form').scrollIntoView({ behavior: 'smooth' }), 100);
+        },
+        init() {},
+      };
+    }
+  </script>
+</body>
+</html>
+
+
+
+
+

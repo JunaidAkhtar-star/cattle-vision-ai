@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Farmer Dashboard | Cattle Vision</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <style>
+    body { background: #f5f8f4; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .navbar { background: linear-gradient(90deg, #2f7d32, #8bc34a); }
+    .navbar-brand { font-weight: 600; color: #fff !important; }
+    .nav-link, .navbar-text { color: #e8f5e9 !important; }
+    .card { border-radius: 10px; border: 1px solid #cfd8dc; }
+    .btn-success { background-color: #2f7d32; border-color: #2f7d32; }
+    .btn-success:hover { background-color: #256427; border-color: #256427; }
+    .badge-cattle { background-color: #4caf50; }
+    .badge-buffalo { background-color: #795548; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark mb-3">
+    <div class="container">
+      <a class="navbar-brand" href="{{ url_for('upload') }}">Cattle Vision</a>
+      <div class="d-flex">
+        <span class="navbar-text me-3">
+          {{ user.name if user else 'Guest' }} ({{ user.role if user else '' }})
+        </span>
+        <a href="{{ url_for('logout') }}" class="btn btn-sm btn-light">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 class="mb-0">My Livestock</h3>
+      <a href="{{ url_for('add_livestock') }}" class="btn btn-success">
+        + Add Livestock
+      </a>
+    </div>
+
+    {% if livestock_list %}
+      <div class="table-responsive">
+        <table class="table table-striped align-middle">
+          <thead class="table-success">
+            <tr>
+              <th>Animal ID</th>
+              <th>Species</th>
+              <th>Breed</th>
+              <th>Age (years)</th>
+              <th>Created</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for animal in livestock_list %}
+            <tr>
+              <td>{{ animal.animal_id }}</td>
+              <td>
+                <span class="badge {{ 'badge-buffalo' if animal.species == 'Buffalo' else 'badge-cattle' }}">
+                  {{ animal.species }}
+                </span>
+              </td>
+              <td>{{ animal.breed }}</td>
+              <td>{{ "%.1f"|format(animal.age_years) if animal.age_years else '-' }}</td>
+              <td>{{ animal.created_at.strftime('%Y-%m-%d') if animal.created_at else '' }}</td>
+              <td>
+                <a href="{{ url_for('livestock_profile', livestock_id=animal.id) }}" class="btn btn-sm btn-outline-success">
+                  View profile
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="alert alert-info">
+        No livestock added yet. Click “Add Livestock” to register your first animal.
+      </div>
+    {% endif %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cattle Vision · History</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-amber-50 via-green-50 to-emerald-50 flex flex-col">
+
+  <header class="bg-gradient-to-r from-emerald-700 to-green-700 shadow-md border-b-4 border-amber-500">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="h-11 w-11 rounded-xl bg-amber-400 flex items-center justify-center shadow-lg">
+          <span class="text-emerald-700 text-lg font-bold">🐄</span>
+        </div>
+        <div>
+          <h1 class="text-base md:text-lg font-bold text-white">
+            Cattle Vision AI · History
+          </h1>
+          <p class="text-xs text-emerald-100">
+            Saved livestock records and past analyses
+          </p>
+        </div>
+      </div>
+
+      <!-- Right side buttons (desktop) -->
+      <div class="hidden md:flex items-center gap-2 text-xs">
+        <!-- Add Livestock button -->
+        <a href="{{ url_for('add_livestock') }}"
+           class="px-3 py-1 rounded-lg bg-white/90 text-emerald-800 font-semibold hover:bg-white shadow">
+          + Add Livestock
+        </a>
+        <a href="{{ url_for('upload') }}"
+           class="px-3 py-1 rounded-lg bg-amber-400 text-emerald-800 font-semibold hover:bg-amber-300 shadow">
+          ← Back to Upload
+        </a>
+        <a href="{{ url_for('logout') }}"
+           class="px-3 py-1 rounded-lg bg-emerald-900 text-emerald-100 font-semibold hover:bg-black/60 shadow">
+          Logout
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1">
+    <div class="max-w-6xl mx-auto px-4 py-8 space-y-4">
+
+      <!-- Mobile header with Add button -->
+      <div class="flex items-center justify-between mb-2 md:hidden">
+        <h2 class="text-lg font-bold text-emerald-800">
+          🐄 Your Livestock & Predictions
+        </h2>
+        <a href="{{ url_for('add_livestock') }}"
+           class="px-3 py-1 rounded-lg bg-white/90 text-emerald-800 font-semibold hover:bg-white shadow text-[11px]">
+          + Add
+        </a>
+      </div>
+
+      <!-- Desktop heading (text only, button already in header) -->
+      <h2 class="hidden md:block text-lg font-bold text-emerald-800 mb-2">
+        🐄 Your Livestock & Predictions
+      </h2>
+
+      {% if livestock_list %}
+        <div class="bg-white rounded-2xl shadow-lg border-l-4 border-l-green-600 border border-slate-200 p-5">
+          <!-- Make table scrollable horizontally on small screens -->
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-xs md:text-sm text-left border-collapse">
+              <thead>
+                <tr class="bg-gradient-to-r from-emerald-100 to-green-100 border-b-2 border-emerald-400">
+                  <th class="px-4 py-3 font-bold text-emerald-800">Animal ID</th>
+                  <th class="px-4 py-3 font-bold text-emerald-800">Species</th>
+                  <th class="px-4 py-3 font-bold text-emerald-800">Breed</th>
+                  <th class="px-4 py-3 font-bold text-emerald-800">Created</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for animal in livestock_list %}
+                <!-- Entire row clickable -->
+                <tr class="border-b border-slate-100 hover:bg-emerald-50 transition cursor-pointer"
+                    onclick="window.location='{{ url_for('livestock_detail', livestock_id=animal.id) }}';">
+                  <td class="px-4 py-3 font-semibold text-slate-800">
+                    <!-- Also make the ID itself a link for accessibility -->
+                    <a href="{{ url_for('livestock_detail', livestock_id=animal.id) }}"
+                       class="text-emerald-800 hover:underline">
+                      {{ animal.animal_id }}
+                    </a>
+                  </td>
+                  <td class="px-4 py-3 text-slate-700">{{ animal.species or '—' }}</td>
+                  <td class="px-4 py-3 text-slate-700">{{ animal.breed or '—' }}</td>
+                  <td class="px-4 py-3 text-slate-500 text-xs">
+                    {{ animal.created_at.strftime('%Y-%m-%d %H:%M') if animal.created_at else '—' }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% else %}
+        <div class="bg-white rounded-2xl shadow-lg border-l-4 border-l-amber-500 border border-slate-200 p-5 text-xs text-slate-700 space-y-2">
+          <p>No livestock records yet.</p>
+          <p>
+            You can either upload an image to create records automatically, or
+            <a href="{{ url_for('add_livestock') }}"
+               class="text-emerald-700 font-semibold underline">
+              add livestock manually
+            </a>.
+          </p>
+        </div>
+      {% endif %}
+    </div>
+  </main>
+
+  <footer class="border-t-4 border-emerald-700 bg-gradient-to-r from-emerald-800 to-green-800 py-4 text-center text-xs text-emerald-100 shadow-lg">
+    © 2025 <span class="font-bold">Digital Dominators</span> ·
+    <span class="text-amber-300 font-semibold">Cattle Vision AI Project</span>
+  </footer>
+</body>
+</html>
+
+
+

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cattle Vision</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-amber-50 via-green-50 to-emerald-50">
+  <header class="bg-gradient-to-r from-emerald-700 to-green-700 shadow-md border-b-4 border-amber-500">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="h-11 w-11 rounded-xl bg-amber-400 flex items-center justify-center shadow-lg">
+          <span class="text-emerald-700 text-lg font-bold">🐄</span>
+        </div>
+        <div>
+          <h1 class="text-base md:text-lg font-bold text-white">
+            Cattle Vision AI
+          </h1>
+          <p class="text-xs text-emerald-100">
+            Smart livestock insight assistant
+          </p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="py-6">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="border-t-4 border-emerald-700 bg-gradient-to-r from-emerald-800 to-green-800 py-5 text-center text-xs text-emerald-100 shadow-lg mt-8">
+    <p class="font-semibold">© 2025 Digital Dominators · <span class="text-amber-300">Cattle Vision AI Project</span></p>
+  </footer>
+</body>
+</html>
