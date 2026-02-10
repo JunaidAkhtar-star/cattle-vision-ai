@@ -1,4 +1,4 @@
-protobuf>=4.25.3,<5.0
+protobuf>=5.0,<7.0
 absl-py==2.3.1
 aiohappyeyeballs==2.6.1
 aiohttp==3.12.15
@@ -210,6 +210,7 @@ Flask>=2.3.0
 Werkzeug>=2.3.0
 requests>=2.31.0
 python-dotenv>=1.0.0
+
 
 
 
